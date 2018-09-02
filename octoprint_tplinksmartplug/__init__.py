@@ -73,7 +73,7 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_assets(self):
 		return dict(
-			js=["js/tplinksmartplug.js"],
+			js=["js/tplinksmartplug.js","js/knockout-bootstrap.min.js"],
 			css=["css/tplinksmartplug.css"]
 		)
 		
@@ -131,16 +131,14 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 		self._tplinksmartplug_logger.debug("Checking status of %s." % plugip)
 		if plugip != "":
 			today = datetime.today()
-			response = self.sendCommand('{"system":{"get_sysinfo":{}},"emeter":{"get_realtime":{},"get_daystat":{"month":%d,"year":%d}}}' % (today.month, today.year),plugip)
-			self._tplinksmartplug_logger.info("%s %s" % (response["emeter"], plugip))
-			
-			if response["emeter"]["err_code"] != 0:
-				self._tplinksmartplug_logger.info("energy error: %s" % response["emeter"]["err_msg"])
-				self._plugin_manager.send_plugin_message(self._identifier, dict(emeter=dict(),ip=plugip))
-			else:
+			check_status_cmnd = '{"system":{"get_sysinfo":{}},"emeter":{"get_realtime":{},"get_daystat":{"month":%d,"year":%d}}}' % (today.month, today.year)
+			self._tplinksmartplug_logger.info(check_status_cmnd)
+			response = self.sendCommand(check_status_cmnd, plugip)
+			self._tplinksmartplug_logger.info(response)
+			if not self.lookup(response, *["emeter","err_code"]):
 				self._plugin_manager.send_plugin_message(self._identifier, dict(emeter=response["emeter"],ip=plugip))
 				
-			chk = response["system"]["get_sysinfo"]["relay_state"]
+			chk = self.lookup(response,*["system","get_sysinfo","relay_state"])
 			if chk == 1:
 				self._plugin_manager.send_plugin_message(self._identifier, dict(currentState="on",ip=plugip))
 			elif chk == 0:
@@ -165,6 +163,11 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 			self.check_status("{ip}".format(**data))
 			
 	##~~ Utilities
+	
+	def lookup(self, dic, key, *keys):
+		if keys:
+			return self.lookup(dic.get(key, {}), *keys)
+		return dic.get(key)
 	
 	def plug_search(self, list, key, value): 
 		for item in list: 

@@ -16,9 +16,9 @@ $(function() {
 		self.selectedPlug = ko.observable();
 		self.processing = ko.observableArray([]);
 		self.energy_data = function(data){
-			var output = data.label() + '\n';
+			var output = data.label() + '<br/>';
 			var energy_data = ko.toJS(data.emeter);
-			for (x in energy_data){output += x + ': ' + energy_data[x] + '\n'};
+			for (x in energy_data){output += x + ': ' + energy_data[x] + '<br/>'};
 			return output;
 		}
 		
