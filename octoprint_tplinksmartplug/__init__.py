@@ -11,7 +11,7 @@ import re
 import threading
 import time
 
-class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
+class tplinksmartplugPlugin1(octoprint.plugin.SettingsPlugin,
                             octoprint.plugin.AssetPlugin,
                             octoprint.plugin.TemplatePlugin,
 							octoprint.plugin.SimpleApiPlugin,
@@ -231,8 +231,10 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 			self.turn_off(plug["ip"])
 	
 	def processGCODE(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
+		cmd = cmd.replace("//", "")
+		cmd = cmd.strip()
 		if gcode:
-			if cmd.startswith("M80"):			
+			if cmd.startswith("M80") or cmd.startswith("// M81"):			
 				plugip = re.sub(r'^M80\s?', '', cmd)
 				self._tplinksmartplug_logger.debug("Received M80 command, attempting power on of %s." % plugip)
 				plug = self.plug_search(self._settings.get(["arrSmartplugs"]),"ip",plugip)
@@ -241,7 +243,7 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 					t = threading.Timer(int(plug["gcodeOnDelay"]),self.turn_on,args=[plugip])
 					t.start()
 				return
-			elif cmd.startswith("M81"):
+			elif cmd.startswith("M81") or cmd.startswith("// M81"):
 				plugip = re.sub(r'^M81\s?', '', cmd)
 				self._tplinksmartplug_logger.debug("Received M81 command, attempting power off of %s." % plugip)
 				plug = self.plug_search(self._settings.get(["arrSmartplugs"]),"ip",plugip)
@@ -253,7 +255,7 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 			else:
 				return
 				
-		elif cmd.startswith("@TPLINKON"):
+		elif cmd.startswith("@TPLINKON") or cmd.startswith("// @TPLINKON"):
 			plugip = re.sub(r'^@TPLINKON\s?', '', cmd)
 			self._tplinksmartplug_logger.debug("Received @TPLINKON command, attempting power on of %s." % plugip)
 			plug = self.plug_search(self._settings.get(["arrSmartplugs"]),"ip",plugip)
@@ -262,7 +264,7 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 				t = threading.Timer(int(plug["gcodeOnDelay"]),self.turn_on,args=[plugip])
 				t.start()
 			return None
-		elif cmd.startswith("@TPLINKOFF"):
+		elif cmd.startswith("@TPLINKOFF") or cmd.startswith("// @TPLINKOFF"):
 			plugip = re.sub(r'^@TPLINKOFF\s?', '', cmd)
 			self._tplinksmartplug_logger.debug("Received TPLINKOFF command, attempting power off of %s." % plugip)
 			plug = self.plug_search(self._settings.get(["arrSmartplugs"]),"ip",plugip)
@@ -280,17 +282,17 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 		# for details.
 		return dict(
 			tplinksmartplug=dict(
-				displayName="TP-Link Smartplug",
+				displayName="TP-Link Smartplug (xpav)",
 				displayVersion=self._plugin_version,
 
 				# version check: github repository
-				type="github_release",
-				user="jneilliii",
-				repo="OctoPrint-TPLinkSmartplug",
-				current=self._plugin_version,
+				#type="github_release",
+				user="xpave",
+				#repo="OctoPrint-TPLinkSmartplug",
+				#current=self._plugin_version,
 
 				# update method: pip
-				pip="https://github.com/jneilliii/OctoPrint-TPLinkSmartplug/archive/{target_version}.zip"
+				#pip="https://github.com/jneilliii/OctoPrint-TPLinkSmartplug/archive/{target_version}.zip"
 			)
 		)
 
@@ -298,11 +300,11 @@ class tplinksmartplugPlugin(octoprint.plugin.SettingsPlugin,
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "TP-Link Smartplug"
+__plugin_name__ = "TP-Link Smartplug (xpav)"
 
 def __plugin_load__():
 	global __plugin_implementation__
-	__plugin_implementation__ = tplinksmartplugPlugin()
+	__plugin_implementation__ = tplinksmartplugPlugin1()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
